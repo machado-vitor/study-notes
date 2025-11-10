@@ -1,6 +1,6 @@
 # study-notes
 The purpose of this repo is to organize my personal studies.
-Each topics has notes, cheatsheets, exercises, and small projects.
+Each topic have notes, cheatsheets, exercises, and small projects.
 
 ## Structure
 
