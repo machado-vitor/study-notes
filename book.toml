@@ -1,0 +1,5 @@
+[book]
+authors = ["Vitor Machado"]
+language = "en"
+src = "src"
+title = "study-notes"
