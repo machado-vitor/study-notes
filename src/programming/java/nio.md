@@ -20,6 +20,11 @@ A Buffer has three:
 - limit: how much data is available (for reading) or space left (for writing)
 - capacity: total size of the buffer
 
+#### ByteBuffer Creation
+There are two ways of creating a ByteBuffer instance:
+- allocation
+- wrapping
+
 #### Buffer Usage
 
 ```java
