@@ -38,22 +38,44 @@ This allows JWTs to be safely passed as:
 ### Header
 - Contains token type (JWT) and signing algorithm (e.g., HS256, RS256)
 - Base64URL encoded JSON
+- https://datatracker.ietf.org/doc/html/rfc7519#section-5
+
+#### Example of JOSE (JSON Object Signing and Encryption)
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
 
 ### Payload
-- Contains claims (statements about the user/entity) 
-// see https://auth0.com/docs/secure/tokens/json-web-tokens/json-web-token-claims
-- Standard claims: `iss` (issuer), `exp` (expiration), `sub` (subject), `aud` (audience)
-- Custom claims: any data you want to include
+- Contains claims (statements about the user/entity and additional data) 
+- There are three types of claims: registered, public, and private claims.
+- Registered claims: `iss` (issuer), `exp` (expiration), `sub` (subject), `aud` (audience) and others https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
+- Public claims: a value that contains a Collision-Resistant Name.
+- Private claims: any data you want to include, are subject to collision and should be used with caution.
 - Base64URL encoded JSON
+
+#### Example
+```json
+{
+    "sub": "1234567890",
+    "name": "John Doe",
+    "admin": true
+}
+```
 
 ### Signature
 - Created by taking encoded header + encoded payload
-- Signing with a secret key (HMAC) or private key (RSA)
+- Signing with a secret key (HMAC) or private key (RSA/ECDSA) specified on the header
 - Ensures token hasn't been tampered with
-- 
+
+#### Example
 ```
-  Algorithm formula:
-  signature = Base64URL(ALGORITHM(header + "." + payload, secret))
+HMACSHA256(
+      base64UrlEncode(header) + "." +
+      base64UrlEncode(payload),
+      secret)
 ```
 
 ## Authentication Flow
