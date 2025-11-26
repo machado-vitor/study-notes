@@ -6,6 +6,8 @@
 
 - [Java]()
   - [Java NIO](./programming/java/nio.md)
+- [Scala]()
+  - [Monads](./programming/scala/monads.md)
 - [Network]()
   - [Netty](./programming/network/netty.md)
 - [Security]()
