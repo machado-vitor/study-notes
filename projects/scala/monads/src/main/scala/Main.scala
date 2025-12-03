@@ -25,3 +25,20 @@ object Box:
     z <- Box(x + 1)
   yield z
   println(empty)
+
+  val f = (x: Int) => Box(x + 1)
+  val g = (x: Int) => Box(x * 2)
+
+  // Left Identity
+  assert(Box(5).flatMap(f) == f(5))
+  // wrapping a value and immediately flatMapping should be the same as just applying the function
+
+
+  // Right Identity
+  assert(Box(10).flatMap(x => Box(x)) == Box(10))
+  // FlatMapping with the Box constructor should return the original box unchanged. 
+
+  // Associativity
+  assert(Box(3).flatMap(f).flatMap(g) == Box(3).flatMap(x => f(x).flatMap(g)))
+  // Chaining flatMaps should work the same way regardless of grouping.
+

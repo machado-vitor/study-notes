@@ -61,11 +61,12 @@ val result = for {
 
 This is equivalent to:
 ```scala
-val result = Some(5).flatMap(x =>
-  Some(10).flatMap(y =>
-    Some(15).map(z =>
-      x + y + z
+val result =
+  Some(5).flatMap(x =>
+    Some(10).flatMap(y =>
+      Some(15).map(z =>
+        x + y + z
+      )
     )
   )
-)
 ```
