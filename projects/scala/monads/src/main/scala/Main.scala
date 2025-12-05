@@ -13,7 +13,8 @@ object Box:
 
 @main def monadDemo(): Unit =
   val result = for
-    x <- Box(10)
+    x <- Box(10) // Box(10) creates Full(10), and flatmap unwraps the value
+    // Full(10).flatMap(f) calls f(value) where value = 10
     y <- Box(20)
     z <- Box(x + y) // flatmap
   yield z * 2 // yield uses map
@@ -32,7 +33,6 @@ object Box:
   // Left Identity
   assert(Box(5).flatMap(f) == f(5))
   // wrapping a value and immediately flatMapping should be the same as just applying the function
-
 
   // Right Identity
   assert(Box(10).flatMap(x => Box(x)) == Box(10))
