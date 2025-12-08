@@ -42,3 +42,6 @@ object Box:
   assert(Box(3).flatMap(f).flatMap(g) == Box(3).flatMap(x => f(x).flatMap(g)))
   // Chaining flatMaps should work the same way regardless of grouping.
 
+// without sealed, someone could create this in another file:
+  // case class Pending[A]() extends Box[A]
+// The compiler can't guarantee exhaustiveness because new subtypes might exist elsewhere.
