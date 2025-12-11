@@ -1,1 +1,17 @@
 book
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.bsp/
+
+# Build outputs
+target/
+build/
+out/
+.scala-build/
+
+# OS
+.DS_Store
+Thumbs.db
