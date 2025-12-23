@@ -7,6 +7,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CachePattern {
     private final Cache<String, String> cache;
     private final javax.cache.Cache<String, String> jCache;
+    // Resilience4j requires JCache, it is like a JDBC,
+    // it defines how to interact with caches, but needs the actual implementation. Caffeine is the actual cache.
     private final AtomicInteger serviceCallCount = new AtomicInteger(0);
     private final AtomicInteger cacheHits = new AtomicInteger(0);
     private final AtomicInteger cacheMisses = new AtomicInteger(0);
