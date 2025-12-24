@@ -4,25 +4,27 @@ import javax.cache.CacheManager;
 import javax.cache.configuration.MutableConfiguration;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class CachePattern {
-    private final Cache<String, String> cache;
-    private final javax.cache.Cache<String, String> jCache;
+public class CachePattern implements AutoCloseable {
+    private final Cache<String, String> cache; // Resilience4j Cache
+    private final javax.cache.Cache<String, String> jCache; // Javax Cache
     // Resilience4j requires JCache, it is like a JDBC,
     // it defines how to interact with caches, but needs the actual implementation. Caffeine is the actual cache.
+    private final CaffeineCachingProvider provider;
+    private final CacheManager cacheManager;
     private final AtomicInteger serviceCallCount = new AtomicInteger(0);
     private final AtomicInteger cacheHits = new AtomicInteger(0);
     private final AtomicInteger cacheMisses = new AtomicInteger(0);
 
     public CachePattern() {
-        CaffeineCachingProvider provider = new CaffeineCachingProvider();
-        CacheManager cacheManager = provider.getCacheManager();
+        this.provider = new CaffeineCachingProvider();
+        this.cacheManager = provider.getCacheManager();
 
         MutableConfiguration<String, String> configuration = new MutableConfiguration<String, String>()
             .setTypes(String.class, String.class)
             .setStoreByValue(false);
 
-        this.jCache = cacheManager.createCache("serviceCache", configuration);
-        this.cache = Cache.of(jCache);
+        this.jCache = cacheManager.createCache("serviceCache", configuration); // Created the actual cache storage using Caffeine.
+        this.cache = Cache.of(jCache); // Wraps JCache with Resilience4j Cache decorator, it adds observability, not storage.
 
         cache.getEventPublisher()
             .onCacheHit(event -> cacheHits.incrementAndGet())
@@ -31,15 +33,7 @@ public class CachePattern {
 
     public String execute(String key) {
         try {
-            String cachedValue = jCache.get(key);
-            if (cachedValue != null) {
-                cacheHits.incrementAndGet();
-                return cachedValue;
-            }
-            cacheMisses.incrementAndGet();
-            String result = callService(key);
-            jCache.put(key, result);
-            return result;
+            return cache.computeIfAbsent(key, () -> callService(key));
         } catch (Exception e) {
             return fallback(e);
         }
@@ -63,41 +57,47 @@ public class CachePattern {
             cacheHits.get(), cacheMisses.get(), serviceCallCount.get());
     }
 
-    public static void main(String[] args) {
-        CachePattern cp = new CachePattern();
+    @Override
+    public void close() {
+        cacheManager.close();
+        provider.close();
+    }
 
-        System.out.println("Cache Pattern - Caching service responses");
-        System.out.println("-----------------------------------------------------------");
+    static void main() {
+        try (CachePattern cp = new CachePattern()) {
+            System.out.println("Cache Pattern - Caching service responses");
+            System.out.println("-----------------------------------------------------------");
 
-        System.out.println("\nPhase 1: First calls - all cache misses");
-        System.out.println("-----------------------------------------------------------");
-        String[] keys = {"user-1", "user-2", "user-3"};
-        for (String key : keys) {
-            String result = cp.execute(key);
-            System.out.printf("Key '%s': %s | %s%n", key, result, cp.getMetrics());
-        }
+            System.out.println("\nPhase 1: First calls - all cache misses");
+            System.out.println("-----------------------------------------------------------");
+            String[] keys = {"user-1", "user-2", "user-3"};
+            for (String key : keys) {
+                String result = cp.execute(key);
+                System.out.printf("Key '%s': %s | %s%n", key, result, cp.getMetrics());
+            }
 
-        System.out.println("\nPhase 2: Repeat calls - all cache hits (no service calls)");
-        System.out.println("-----------------------------------------------------------");
-        for (String key : keys) {
-            String result = cp.execute(key);
-            System.out.printf("Key '%s': %s | %s%n", key, result, cp.getMetrics());
-        }
+            System.out.println("\nPhase 2: Repeat calls - all cache hits (no service calls)");
+            System.out.println("-----------------------------------------------------------");
+            for (String key : keys) {
+                String result = cp.execute(key);
+                System.out.printf("Key '%s': %s | %s%n", key, result, cp.getMetrics());
+            }
 
-        System.out.println("\nPhase 3: New key - cache miss, then hit");
-        System.out.println("-----------------------------------------------------------");
-        for (int i = 0; i < 2; i++) {
-            String result = cp.execute("user-4");
-            System.out.printf("Key 'user-4': %s | %s%n", result, cp.getMetrics());
-        }
+            System.out.println("\nPhase 3: New key - cache miss, then hit");
+            System.out.println("-----------------------------------------------------------");
+            for (int i = 0; i < 2; i++) {
+                String result = cp.execute("user-4");
+                System.out.printf("Key 'user-4': %s | %s%n", result, cp.getMetrics());
+            }
 
-        System.out.println("\nPhase 4: Clear cache and retry - all misses again");
-        System.out.println("-----------------------------------------------------------");
-        cp.clearCache();
-        System.out.println("Cache cleared!");
-        for (String key : keys) {
-            String result = cp.execute(key);
-            System.out.printf("Key '%s': %s | %s%n", key, result, cp.getMetrics());
+            System.out.println("\nPhase 4: Clear cache and retry - all misses again");
+            System.out.println("-----------------------------------------------------------");
+            cp.clearCache();
+            System.out.println("Cache cleared!");
+            for (String key : keys) {
+                String result = cp.execute(key);
+                System.out.printf("Key '%s': %s | %s%n", key, result, cp.getMetrics());
+            }
         }
     }
 }
