@@ -1,13 +1,13 @@
-type Link<T> = Option<Box<Node<T>>>;
+type Child<T> = Option<Box<Node<T>>>;
 
 struct Node<T> {
     value: T,
-    left: Link<T>,
-    right: Link<T>,
+    left: Child<T>,
+    right: Child<T>,
 }
 
 struct Bst<T> {
-    root: Link<T>,
+    root: Child<T>,
 }
 
 impl<T: Ord> Bst<T> {
@@ -19,7 +19,7 @@ impl<T: Ord> Bst<T> {
         Self::insert_at(&mut self.root, value);
     }
 
-    fn insert_at(link: &mut Link<T>, value: T) {
+    fn insert_at(link: &mut Child<T>, value: T) {
         match link {
             None => {
                 *link = Some(Box::new(Node {
@@ -43,7 +43,7 @@ impl<T: Ord> Bst<T> {
         Self::search(&self.root, value)
     }
 
-    fn search(link: &Link<T>, value: &T) -> bool {
+    fn search(link: &Child<T>, value: &T) -> bool {
         match link {
             None => false,
             Some(node) => {
@@ -64,7 +64,7 @@ impl<T: Ord> Bst<T> {
         result
     }
 
-    fn in_order_walk<'a>(link: &'a Link<T>, result: &mut Vec<&'a T>) {
+    fn in_order_walk<'a>(link: &'a Child<T>, result: &mut Vec<&'a T>) {
         if let Some(node) = link {
             Self::in_order_walk(&node.left, result);
             result.push(&node.value);
