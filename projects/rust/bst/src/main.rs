@@ -85,6 +85,20 @@ impl<T: Ord> Bst<T> {
             Self::pre_order_walk(&node.right, result);  // right
         }
     }
+
+    fn post_order(&self) -> Vec<&T> {
+        let mut result = Vec::new();
+        Self::post_order_walk(&self.root, &mut result);
+        result
+    }
+
+    fn post_order_walk<'a>(link: &'a Child<T>, result: &mut Vec<&'a T>) {
+        if let Some(node) = link {
+            Self::post_order_walk(&node.left, result);   // left
+            Self::post_order_walk(&node.right, result);  // right
+            result.push(&node.value);                    // root
+        }
+    }
 }
 
 fn main() {
@@ -101,6 +115,8 @@ fn main() {
     println!("in-order traversal: {:?}", tree.in_order());
     // Pre-order (root -> left -> right) useful for copying/serializing
     println!("pre-order traversal: {:?}", tree.pre_order());
+    // Post-order (left -> right -> root) useful for deleting (children first)
+    println!("post-order traversal: {:?}", tree.post_order());
     println!("contains 4? {}", tree.contains(&4));
     println!("contains 9? {}", tree.contains(&9));
 }
