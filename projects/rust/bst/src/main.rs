@@ -66,9 +66,9 @@ impl<T: Ord> Bst<T> {
 
     fn in_order_walk<'a>(link: &'a Child<T>, result: &mut Vec<&'a T>) {
         if let Some(node) = link {
-            Self::in_order_walk(&node.left, result);
-            result.push(&node.value);
-            Self::in_order_walk(&node.right, result);
+            Self::in_order_walk(&node.left, result); // left
+            result.push(&node.value); // root
+            Self::in_order_walk(&node.right, result); // right
         }
     }
 }
@@ -80,6 +80,10 @@ fn main() {
         tree.insert(val);
     }
 
+    // A Traversal is the process of visiting every node in a tree in a specific order.
+    // Since a tree isn't linear like an array, there are different strategies for walking through it.
+    // For BST, there are 3 main depth-first traversals:
+    // In-order (left -> root -> right) gives sorted output: 1, 3, 4, 5, 7
     println!("in-order traversal: {:?}", tree.in_order());
     println!("contains 4? {}", tree.contains(&4));
     println!("contains 9? {}", tree.contains(&9));
